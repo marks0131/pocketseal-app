@@ -1,6 +1,7 @@
 import React from 'react';
-import { RxDashboard, RxGear, RxLockClosed, RxPerson } from 'react-icons/rx';
 import { NavLink } from 'react-router-dom';
+import { RxDashboard, RxGear, RxLockClosed } from 'react-icons/rx';
+import { FaUser } from 'react-icons/fa';
 
 const Sidebar = () => {
   return (
@@ -19,19 +20,19 @@ const Sidebar = () => {
           <details>
             <summary><RxGear className="w-5 h-5" /> Settings</summary>
             <ul>
-              <li><NavLink to="/admin/settings/general" className={({ isActive }) => isActive ? 'active' : ''}>General</NavLink></li>
-              <li><NavLink to="/admin/settings/api-keys" className={({ isActive }) => isActive ? 'active' : ''}>API Keys</NavLink></li>
+              <li><NavLink to="/admin/settings/general">General</NavLink></li>
+              <li><NavLink to="/admin/settings/api-keys">API Keys</NavLink></li>
             </ul>
           </details>
         </li>
         <li>
-          <NavLink to="/admin/ng-words" className={({ isActive }) => isActive ? 'active' : ''}>
+          <NavLink to="/admin/ng-words">
             <RxLockClosed className="w-5 h-5" /> NGワード管理
           </NavLink>
         </li>
         <li>
           <NavLink to="/admin/users" className={({ isActive }) => isActive ? 'active' : ''}>
-            <RxPerson className="w-5 h-5" /> ユーザー管理
+            <FaUser className="w-5 h-5" /> ユーザー管理
           </NavLink>
         </li>
       </ul>
