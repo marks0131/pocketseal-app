@@ -1,18 +1,17 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
-const LeftSidebar = () => {
-  const threads = [
-    { id: 1, name: '新規チャット' },
-    { id: 2, name: '2025年度前期時間割について' },
-    { id: 3, name: '職場から家までの行き方' },
-  ];
+interface LeftSidebarProps {
+  threads: { id: string; name: string }[];
+  onAddThread: () => void;
+}
 
+const LeftSidebar: React.FC<LeftSidebarProps> = ({ threads, onAddThread }) => {
   return (
     <div className="w-64 bg-base-100 p-4 shadow-xl flex-shrink-0 overflow-y-auto">
       <div className="flex items-center justify-between mb-4">
         <div className="font-bold text-lg">スレッド</div>
-        <button className="btn btn-sm btn-ghost btn-circle">
+        <button onClick={onAddThread} className="btn btn-sm btn-ghost btn-circle">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5"

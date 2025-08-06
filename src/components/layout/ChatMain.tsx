@@ -1,15 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import ChatBubble from '../chat/ChatBubble';
 import type { Message } from '../chat/ChatBubble';
+import { Link } from 'react-router-dom';
+import { RxGear } from 'react-icons/rx';
+
+const chatData: { [key: string]: Message[] } = {
+  '1': [
+    { sender: 'ai', text: '新規チャットへようこそ！' },
+  ],
+  '2': [
+    { sender: 'ai', text: '2025年度前期時間割についてですね。何かお困りですか？' },
+    { sender: 'user', text: '火曜日の5限は何の授業でしたっけ？' },
+    { sender: 'ai', text: 'English IIの授業です。' },
+  ],
+  '3': [
+    { sender: 'ai', text: '職場から家までの行き方についてですね。どの駅から出発しますか？' },
+    { sender: 'user', text: '京都駅から職場までです。' },
+    { sender: 'ai', text: '京都駅から職場（京都デザイン＆テクノロジー専門学校）までは、電車で15分、徒歩で35分程度です。' },
+  ],
+};
 
 const ChatMain = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    { sender: 'ai', text: 'カスタマーサポートモードです。お客様の質問に対して、適切な回答を提供します。どのようなお問い合わせでしょうか？' },
-    { sender: 'user', text: 'どっかで100円落としたんやけど探してくれんか？' },
-    { sender: 'ai', text: '自分で探せカス' },
-  ]);
-
+  const { threadId } = useParams<{ threadId?: string }>();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
+
+  useEffect(() => {
+    const currentThreadId = threadId || '1';
+    setMessages(chatData[currentThreadId] || []);
+  }, [threadId]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,16 +47,17 @@ const ChatMain = () => {
 
   return (
     <div className="flex flex-col flex-1 bg-base-100 overflow-hidden">
-      <div className="p-4 border-b border-base-300 flex-shrink-0">
+      <div className="p-4 border-b border-base-300 flex-shrink-0 flex justify-between items-center">
         <h2 className="text-xl font-bold">Customer Support</h2>
+        <Link to="/admin" className="btn btn-sm btn-ghost btn-circle">
+          <RxGear className="w-5 h-5" />
+        </Link>
       </div>
-
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
         {messages.map((msg, index) => (
           <ChatBubble key={index} message={msg} />
         ))}
       </div>
-
       <form onSubmit={handleSendMessage} className="p-4 border-t border-base-300 flex-shrink-0">
         <div className="flex items-center space-x-2">
           <button type="button" className="btn btn-ghost btn-circle">

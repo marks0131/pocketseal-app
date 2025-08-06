@@ -17,7 +17,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ここを追加 */
+
 html, body, #root {
   height: 100%;
 }
