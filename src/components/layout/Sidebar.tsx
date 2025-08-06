@@ -21,12 +21,16 @@ const Sidebar = () => {
             <summary><RxGear className="w-5 h-5" /> Settings</summary>
             <ul>
               <li><NavLink to="/admin/settings/general">General</NavLink></li>
-              <li><NavLink to="/admin/settings/api-keys">API Keys</NavLink></li>
+              <li>
+                <NavLink to="/admin/settings/api-keys" className={({ isActive }) => isActive ? 'active' : ''}>
+                  <RxGear className="w-5 h-5" /> API Keys
+                </NavLink>
+              </li>
             </ul>
           </details>
         </li>
         <li>
-          <NavLink to="/admin/ng-words">
+          <NavLink to="/admin/ng-words" className={({ isActive }) => isActive ? 'active' : ''}>
             <RxLockClosed className="w-5 h-5" /> NGワード管理
           </NavLink>
         </li>

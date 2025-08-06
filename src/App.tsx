@@ -1,12 +1,13 @@
+// src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AdminLayout from './components/layout/AdminLayout';
-import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import ApiKeysPage from './pages/admin/ApiKeysPage';
 import ChatLayout from './components/layout/ChatLayout';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import GeneralSettingsPage from './pages/admin/GeneralSettingsPage';
-import UserManagementPage from './pages/admin/UserManagementPage';
 import NgWordManagementPage from './pages/admin/NgWordManagementPage';
-
+import UserManagementPage from './pages/admin/UserManagementPage';
 
 function App() {
   return (
@@ -14,11 +15,13 @@ function App() {
       <Routes>
         <Route path="/" element={<ChatLayout />} />
         <Route path="/thread/:threadId" element={<ChatLayout />} />
+
         <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboardPage />} />
           <Route path="ng-words" element={<NgWordManagementPage />} />
           <Route path="users" element={<UserManagementPage />} />
-          <Route index element={<AdminDashboardPage />} />
           <Route path="settings/general" element={<GeneralSettingsPage />} />
+          <Route path="settings/api-keys" element={<ApiKeysPage />} />
         </Route>
       </Routes>
     </Router>
