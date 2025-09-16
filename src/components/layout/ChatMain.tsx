@@ -1,49 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useParams, Link } from 'react-router-dom';
+import { RxGear } from 'react-icons/rx';
+import ChatInput from '../chat/ChatInput';
 import ChatBubble from '../chat/ChatBubble';
 import type { Message } from '../chat/ChatBubble';
-import { Link } from 'react-router-dom';
-import { RxGear } from 'react-icons/rx';
 
-const chatData: { [key: string]: Message[] } = {
-  '1': [
-    { sender: 'ai', text: '新規チャットへようこそ！' },
-  ],
-  '2': [
-    { sender: 'ai', text: '2025年度前期時間割についてですね。何かお困りですか？' },
-    { sender: 'user', text: '火曜日の5限は何の授業でしたっけ？' },
-    { sender: 'ai', text: 'English IIの授業です。' },
-  ],
-  '3': [
-    { sender: 'ai', text: '職場から家までの行き方についてですね。どの駅から出発しますか？' },
-    { sender: 'user', text: '京都駅から職場までです。' },
-    { sender: 'ai', text: '京都駅から職場（京都デザイン＆テクノロジー専門学校）までは、電車で15分、徒歩で35分程度です。' },
-  ],
-};
-
-const ChatMain = () => {
-  const { threadId } = useParams<{ threadId?: string }>();
+const ChatMain: React.FC = () => {
+  const { threadId: urlThreadId } = useParams<{ threadId?: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [threadId, setThreadId] = useState<string | null>(null);
 
   useEffect(() => {
-    const currentThreadId = threadId || '1';
-    setMessages(chatData[currentThreadId] || []);
-  }, [threadId]);
+    const fetchThread = async (id: string) => {
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/thread/${id}`);
+        const loadedMessages = response.data.messages.map((msg: any) => ({
+          sender: msg.role === 'USER' ? 'user' : 'ai',
+          text: msg.content,
+        }));
+        setMessages(loadedMessages);
+      } catch (error) {
+        console.error('スレッドの読み込み中にエラーが発生しました:', error);
+        setMessages([{ sender: 'ai', text: 'スレッドの読み込みに失敗しました。' }]);
+      }
+    };
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputMessage.trim() === '') return;
+    const createNewThread = async () => {
+      try {
+        const response = await axios.post('http://127.0.0.1:8000/thread', {
+          title: '新しいチャット',
+        });
+        setThreadId(response.data.id);
+        setMessages([{ sender: 'ai', text: '新規チャットへようこそ！' }]);
+      } catch (error) {
+        console.error('スレッドの作成中にエラーが発生しました:', error);
+      }
+    };
+    
+    if (urlThreadId) {
+      setThreadId(urlThreadId);
+      fetchThread(urlThreadId);
+    } else {
+      createNewThread();
+    }
+  }, [urlThreadId]);
 
-    const newUserMessage: Message = { sender: 'user', text: inputMessage };
-    setMessages([...messages, newUserMessage]);
-    setInputMessage('');
-
-    setTimeout(() => {
-      const newAiMessage: Message = { sender: 'ai', text: 'ダミーのAI応答です。' };
-      setMessages((prevMessages) => [...prevMessages, newAiMessage]);
-    }, 500);
+  const handleNewMessage = (userMessage: Message, aiResponse: string) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      userMessage,
+      { sender: 'ai', text: aiResponse },
+    ]);
   };
+
+  if (!threadId) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex flex-col flex-1 bg-base-100 overflow-hidden">
@@ -54,33 +67,12 @@ const ChatMain = () => {
         </Link>
       </div>
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
-        {messages.map((msg, index) => (
-          <ChatBubble key={index} message={msg} />
+        {messages.map((message, index) => (
+          <ChatBubble key={index} message={message} />
         ))}
       </div>
-      <form onSubmit={handleSendMessage} className="p-4 border-t border-base-300 flex-shrink-0">
-        <div className="flex items-center space-x-2">
-          <button type="button" className="btn btn-ghost btn-circle">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13.5" />
-            </svg>
-          </button>
-          <input
-            type="text"
-            placeholder="メッセージを送信..."
-            className="input input-bordered w-full"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-          />
-          <button type="submit" className="btn btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      </form>
+      <ChatInput onSendMessage={handleNewMessage} threadId={threadId} />
     </div>
   );
 };
-
 export default ChatMain;

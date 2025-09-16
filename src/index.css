@@ -21,3 +21,27 @@
 html, body, #root {
   height: 100%;
 }
+.highlight-container {
+  position: relative;
+  width: 100%;
+}
+
+.highlight-container .highlighter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100%;
+  padding: 1rem; 
+  font-size: 1rem;
+  pointer-events: none; 
+  color: transparent; 
+  white-space: pre-wrap; 
+}
+
+.highlight-container .input-overlay {
+  position: relative;
+  z-index: 10;
+  background-color: transparent; 
+  color: var(--fallback-bc, oklch(var(--bc) / 1)); 
+}
