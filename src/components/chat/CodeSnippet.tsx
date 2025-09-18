@@ -1,48 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { FaCopy, FaCheck } from 'react-icons/fa';
 
 interface CodeSnippetProps {
+  language: string;
   code: string;
-  language?: string;
 }
 
-const CodeSnippet: React.FC<CodeSnippetProps> = ({ code, language = 'python' }) => {
-  const [highlightedCode, setHighlightedCode] = useState('');
-  const [loading, setLoading] = useState(true);
+const CodeSnippet: React.FC<CodeSnippetProps> = ({ language, code }) => {
+  const [isCopied, setIsCopied] = useState(false);
 
-  useEffect(() => {
-    const fetchHighlightedCode = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.post('http://127.0.0.1:8000/highlight', {
-          code,
-          language,
-        });
-        setHighlightedCode(response.data.highlighted_code);
-      } catch (error) {
-        console.error("構文ハイライトAPI呼び出しエラー:", error);
-        setHighlightedCode(`構文ハイライトに失敗しました: ${code}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHighlightedCode();
-  }, [code, language]);
-
-  if (loading) {
-    return (
-      <div className="p-4 bg-gray-800 text-gray-400 font-mono rounded-lg">
-        <span className="loading loading-dots loading-xs mr-2"></span>
-        <span>コードをハイライト中...</span>
-      </div>
-    );
-  }
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    });
+  };
 
   return (
-    <div
-      className="p-4 bg-gray-800 text-white font-mono rounded-lg overflow-x-auto"
-      dangerouslySetInnerHTML={{ __html: highlightedCode }}
-    />
+    <div className="relative my-2 rounded-lg bg-[#282c34]">
+      <div className="flex items-center justify-between px-4 py-2 bg-base-300/30 rounded-t-lg">
+        <span className="text-sm font-sans text-base-content/60">{language}</span>
+        <button onClick={handleCopy} className="btn btn-ghost btn-xs">
+          {isCopied ? (
+            <>
+              <FaCheck className="w-4 h-4 text-success" />
+              <span className="text-xs ml-1 text-success">Copied!</span>
+            </>
+          ) : (
+            <>
+              <FaCopy className="w-4 h-4" />
+              <span className="text-xs ml-1">Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+      <SyntaxHighlighter
+        language={language}
+        style={atomDark}
+        customStyle={{ 
+          margin: 0, 
+          padding: '1rem',
+          borderRadius: '0 0 0.5rem 0.5rem',
+          backgroundColor: 'transparent'
+        }}
+        codeTagProps={{ 
+          style: { 
+            fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+            fontSize: '0.875rem'
+          } 
+        }}
+      >
+        {code}
+      </SyntaxHighlighter>
+    </div>
   );
 };
 
