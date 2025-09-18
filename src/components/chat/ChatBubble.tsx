@@ -1,7 +1,8 @@
 import React from 'react';
+import { FaUser, FaRobot } from 'react-icons/fa';
 
 export interface Message {
-  sender: 'ai' | 'user';
+  sender: 'user' | 'ai';
   text: string;
 }
 
@@ -11,25 +12,21 @@ interface ChatBubbleProps {
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   const isUser = message.sender === 'user';
-  const chatClass = isUser ? 'chat-end' : 'chat-start';
-  const bubbleClass = isUser ? 'chat-bubble-primary' : 'chat-bubble-accent';
-
-  const senderName = isUser ? 'You' : 'AI';
-  const avatarImage = isUser
-    ? 'https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg'
-    : 'https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg';
 
   return (
-    <div className={`chat ${chatClass}`}>
+    <div className={`chat ${isUser ? 'chat-end' : 'chat-start'}`}>
       <div className="chat-image avatar">
-        <div className="w-10 rounded-full">
-          <img alt={`${senderName} Avatar`} src={avatarImage} />
+        <div className="w-10 rounded-full bg-base-300 flex items-center justify-center">
+          {isUser ? <FaUser className="w-5 h-5" /> : <FaRobot className="w-5 h-5" />}
         </div>
       </div>
-      <div className={`chat-header mb-1 text-sm text-base-content/70`}>
-        {senderName}
-      </div>
-      <div className={`chat-bubble ${bubbleClass}`}>
+      <div
+        className={`chat-bubble ${
+          isUser
+            ? 'chat-bubble-secondary'
+            : 'chat-bubble-primary text-primary-content'
+        }`}
+      >
         {message.text}
       </div>
     </div>

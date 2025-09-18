@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
 interface NgWord {
@@ -7,16 +7,29 @@ interface NgWord {
   description: string;
 }
 
-const initialNgWords: NgWord[] = [
-  { id: 1, word: '社外秘', description: '機密情報に関する単語' },
-  { id: 2, word: '個人情報', description: '個人を特定できる情報' },
-  { id: 3, word: '給与', description: '給与に関する情報' },
-];
+const NG_WORDS_STORAGE_KEY = 'pocketseal_ng_words';
 
 const NgWordManagementPage = () => {
-  const [ngWords, setNgWords] = useState(initialNgWords);
+  const [ngWords, setNgWords] = useState<NgWord[]>(() => {
+    try {
+      const savedWords = localStorage.getItem(NG_WORDS_STORAGE_KEY);
+      return savedWords ? JSON.parse(savedWords) : [];
+    } catch (error) {
+      console.error('Failed to load NG words from localStorage', error);
+      return [];
+    }
+  });
+
   const [newWord, setNewWord] = useState('');
   const [newDescription, setNewDescription] = useState('');
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(NG_WORDS_STORAGE_KEY, JSON.stringify(ngWords));
+    } catch (error) {
+      console.error('Failed to save NG words to localStorage', error);
+    }
+  }, [ngWords]);
 
   const handleAddNgWord = (e: React.FormEvent) => {
     e.preventDefault();
