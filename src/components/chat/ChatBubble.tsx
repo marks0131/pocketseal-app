@@ -12,7 +12,7 @@ interface ChatBubbleProps {
 const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   const isUser = message.sender === 'user';
   const chatClass = isUser ? 'chat-end' : 'chat-start';
-  const bubbleClass = isUser ? 'chat-bubble-primary' : 'chat-bubble-secondary';
+  const bubbleClass = isUser ? 'chat-bubble-primary' : 'chat-bubble-accent';
 
   const senderName = isUser ? 'You' : 'AI';
   const avatarImage = isUser
@@ -29,7 +29,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
       <div className={`chat-header mb-1 text-sm text-base-content/70`}>
         {senderName}
       </div>
-      <div className={`chat-bubble ${bubbleClass} text-white`}>
+      <div className={`chat-bubble ${bubbleClass}`}>
         {message.text}
       </div>
     </div>
