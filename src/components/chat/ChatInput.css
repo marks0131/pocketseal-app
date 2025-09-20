@@ -1,0 +1,36 @@
+.highlight-org {
+  background-color: #fecaca;
+  color: #991b1b;
+  padding: 0.1em 0.3em;
+  border-radius: 0.25em;
+}
+.highlight-prd {
+  background-color: #bfdbfe;
+  color: #1e40af;
+  padding: 0.1em 0.3em;
+  border-radius: 0.25em;
+}
+.highlight-person {
+  background-color: #bbf7d0;
+  color: #166534;
+  padding: 0.1em 0.3em;
+  border-radius: 0.25em;
+}
+.highlight-loc {
+  background-color: #e9d5ff;
+  color: #581c87;
+  padding: 0.1em 0.3em;
+  border-radius: 0.25em;
+}
+
+.ProseMirror {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+}
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #a9a9a9;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

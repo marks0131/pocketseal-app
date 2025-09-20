@@ -1,8 +1,7 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import ChatLayout from './components/layout/ChatLayout';
-import ChatMain from './components/layout/ChatMain';
+import ChatMain from './components/chat/ChatMain';
 import AdminLayout from './components/layout/AdminLayout';
 import ApiKeysPage from './pages/admin/ApiKeysPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';

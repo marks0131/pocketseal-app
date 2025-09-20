@@ -1,62 +1,83 @@
 import React from 'react';
 import { FaUser, FaRobot } from 'react-icons/fa';
 import CodeSnippet from './CodeSnippet';
-import KeywordHighlighter from './KeywordHighlighter';
-
-export interface Message {
-  sender: 'user' | 'ai';
-  text: string;
-}
-
-export interface MessagePart {
-  text: string;
-  type: string;
-}
+import type { Message } from '../../types';
 
 interface ChatBubbleProps {
   message: Message;
 }
 
+const getClassNameForEntity = (entity: string): string => {
+  switch (entity) {
+    case 'ORG': return 'bg-red-300 text-red-800 px-1 rounded-sm';
+    case 'PRD': return 'bg-blue-300 text-blue-800 px-1 rounded-sm';
+    case 'PERSON': return 'bg-green-300 text-green-800 px-1 rounded-sm';
+    case 'LOC': return 'bg-purple-300 text-purple-800 px-1 rounded-sm';
+    case 'NG_WORD': return 'bg-gray-600 text-white px-1 rounded-sm line-through decoration-red-500';
+    default: return '';
+  }
+};
+
 const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   const isUser = message.sender === 'user';
 
-  const codeBlockRegex = /```(\w+)\n([\s\S]+?)```/s;
-  const match = isUser ? null : message.text.match(codeBlockRegex);
-
   const renderContent = () => {
-    if (!match) {
-      return <KeywordHighlighter text={message.text} />;
+    const { text, response } = message;
+
+    const codeBlockRegex = /```(\w+)\n([\s\S]+?)```/s;
+    const codeMatch = text.match(codeBlockRegex);
+
+    if (codeMatch) {
+      return <CodeSnippet language={codeMatch[1]} code={codeMatch[2].trim()} />;
+    }
+    
+    if (!response || response.length === 0) {
+      return text;
     }
 
-    const beforeCode = message.text.substring(0, match.index);
-    const afterCode = message.text.substring(match.index! + match[0].length);
-    const language = match[1];
-    const code = match[2].trim();
+    const elements = [];
+    let lastIndex = 0;
+
+    response.forEach((segment, index) => {
+      if (segment.start > lastIndex) {
+        elements.push(text.substring(lastIndex, segment.start));
+      }
+      elements.push(
+        <span key={index} className={getClassNameForEntity(segment.entity_group)}>
+          {segment.word}
+        </span>
+      );
+      lastIndex = segment.end;
+    });
+
+    if (lastIndex < text.length) {
+      elements.push(text.substring(lastIndex));
+    }
 
     return (
-      <>
-        {beforeCode && <p className="mb-2"><KeywordHighlighter text={beforeCode} /></p>}
-        <CodeSnippet language={language} code={code} />
-        {afterCode && <p className="mt-2"><KeywordHighlighter text={afterCode} /></p>}
-      </>
+      <span>
+        {elements.map((el, i) => <React.Fragment key={i}>{el}</React.Fragment>)}
+      </span>
     );
   };
 
   return (
     <div className={`chat ${isUser ? 'chat-end' : 'chat-start'}`}>
       <div className="chat-image avatar">
-        <div className="w-10 rounded-full bg-base-300 flex items-center justify-center">
-          {isUser ? <FaUser className="w-5 h-5" /> : <FaRobot className="w-5 h-5" />}
+        <div className="w-10 flex items-center justify-center">
+          {isUser ? <FaUser className="w-10 h-10" /> : <FaRobot className="w-10 h-10" />}
         </div>
       </div>
       <div
         className={`chat-bubble whitespace-pre-wrap ${
           isUser
             ? 'chat-bubble-secondary'
-            : match ? 'bg-transparent shadow-none p-0' : 'chat-bubble-primary text-primary-content'
+            : message.text.match(/```(\w+)\n([\s\S]+?)```/s)
+              ? 'bg-transparent shadow-none p-0'
+              : 'chat-bubble-primary text-primary-content'
         }`}
       >
-        {isUser ? message.text : renderContent()}
+        {renderContent()}
       </div>
     </div>
   );

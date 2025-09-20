@@ -1,68 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import type { Message } from './ChatBubble';
-
-const ngWords = ['社外秘', '個人情報', '給与'];
+import { FiSend } from 'react-icons/fi';
+import { toast } from 'react-hot-toast';
+import type { Message, MessagePart } from '../../types';
+import './ChatInput.css';
+import Highlighter, { type Marker, type MarkerColor } from './Highlighter';
 
 interface ChatInputProps {
-  onSendMessage: (userMessage: Message, aiResponse: string) => void;
+  onSendMessage: (userMessage: Message, aiResponse: Message) => void;
   threadId: string;
 }
 
+const getClassNameForEntity = (entity: string): MarkerColor => {
+  switch (entity) {
+    case 'ORG': return 'red';
+    case 'P': return 'red';
+    case 'O': return 'red';
+    case 'PRD': return 'blue';
+    case 'PER': return 'green';
+    case 'LOC': return 'yellow';
+    default: return 'gray';
+  }
+};
+
 const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, threadId }) => {
-  const [inputMessage, setInputMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [editorText, setEditorText] = useState('');
+  const [markerData, setMarkerData] = useState<Marker[]>([]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputMessage.trim() === '') return;
+  useEffect(() => {
+    const fetchAndApplyHighlights = async () => {
 
-    const isNgWordIncluded = ngWords.some(word => inputMessage.includes(word));
-    const userMessage: Message = { sender: 'user', text: inputMessage };
-    
-    let aiResponseText = '';
-    
-    if (isNgWordIncluded) {
-      aiResponseText = 'これはNGワードが含まれているため対応いたしかねます。';
-    } else {
       try {
-        setLoading(true);
-        const response = await axios.post(`http://127.0.0.1:8000/thread/${threadId}/message`, { content: inputMessage });
-        aiResponseText = response.data.content;
+        const nerResponse = await axios.post('http://127.0.0.1:8000/ner_text', {
+          text: editorText,
+        });
+        const parts: MessagePart[] = nerResponse.data;
+        // TODO: partsをmarkerDataに代入する処理を書く
+        setMarkerData(parts.map(part => ({
+          start: part.start,
+          end: part.end,
+          color: getClassNameForEntity(part.entity_group),
+        })))
       } catch (error) {
-        console.error("API呼び出しエラー:", error);
-        aiResponseText = 'AI応答の取得中にエラーが発生しました。';
-      } finally {
-        setLoading(false);
+        console.error("リアルタイム解析エラー:", error);
       }
+    };
+    fetchAndApplyHighlights();
+  }, [editorText]);
+  
+  const handleSubmit = async () => {
+    const trimmedInput = editorText.trim();
+    if (!trimmedInput) return;
+
+    setIsSending(true);
+
+    try {
+      const userNerResponse = await axios.post(`http://127.0.0.1:8000/ner_text`, { text: trimmedInput });
+      const userProcessedParts: MessagePart[] = userNerResponse.data;
+      const userMessage: Message = { sender: 'user', text: trimmedInput, response: userProcessedParts };
+
+      const messageResponse = await axios.post(`http://127.0.0.1:8000/thread/${threadId}/message`, { content: trimmedInput });
+      const aiPlainText = messageResponse.data.content;
+
+      const aiNerResponse = await axios.post(`http://127.0.0.1:8000/ner_text`, { text: aiPlainText });
+      const aiProcessedParts: MessagePart[] = aiNerResponse.data;
+      const aiResponse: Message = { sender: 'ai', text: aiPlainText, response: aiProcessedParts };
+
+      setEditorText('');
+      setMarkerData([]);
+
+      onSendMessage(userMessage, aiResponse);
+
+    } catch (error) {
+      console.error('メッセージの送受信中にエラーが発生しました:', error);
+      toast.error('AIとの通信中にエラーが発生しました。');
+    } finally {
+      setIsSending(false);
+    }
+  };
+  
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        handleSubmit();
+      }
+    };
+    
+    const editorElement = document.querySelector('.ProseMirror');
+    if (editorElement) {
+        editorElement.addEventListener('keydown', handleKeyDown as EventListener);
     }
 
-    onSendMessage(userMessage, aiResponseText);
-    setInputMessage('');
-  };
+    return () => {
+      if (editorElement) {
+        editorElement.removeEventListener('keydown', handleKeyDown as EventListener);
+      }
+    };
+  }, [isSending, handleSubmit]);
 
   return (
-    <form onSubmit={handleSendMessage} className="p-4 border-t border-base-300 flex-shrink-0">
-      <div className="flex items-center space-x-2">
-        <button type="button" className="btn btn-ghost btn-circle">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13.5" />
-          </svg>
-        </button>
-        <input
-          type="text"
-          placeholder="メッセージを送信..."
-          className="input input-bordered w-full"
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-        />
-        <button type="submit" className="btn btn-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
+    <div className="p-4 border-t border-base-300 flex-shrink-0">
+      <div className="flex items-end gap-2 p-2 rounded-lg border border-base-300 bg-base-100">
+        {/* <EditorContent editor={editor} className="flex-grow max-h-40 overflow-y-auto" /> */}
+        <Highlighter markerData={markerData} text={editorText} setText={(v) => setEditorText(v)} className="flex-grow max-h-40" />
+        <button
+          onClick={handleSubmit}
+          className="btn btn-primary btn-square"
+          disabled={isSending || !editorText.trim()}
+        >
+          {isSending ? <span className="loading loading-spinner" /> : <FiSend className="w-5 h-5" />}
         </button>
       </div>
-    </form>
+    </div>
   );
 };
 
