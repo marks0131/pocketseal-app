@@ -36,17 +36,14 @@
 .highlighter-textarea {
   background-color: transparent;
   color: transparent;
-  caret-color: white;
+  caret-color: hsl(var(--bc));
   z-index: 2;
   resize: none;
-  /* テキスト選択を可能にする */
   -webkit-text-fill-color: transparent;
-  /* スクロールバーのスタイリング */
   scrollbar-width: thin;
   scrollbar-color: #666 #222;
 }
 
-/* テキスト選択時のスタイル */
 .highlighter-textarea::selection {
   background-color: rgba(173, 216, 230, 0.3);
 }
@@ -69,11 +66,10 @@
 }
 
 .highlight-layer {
-  color: #ddd;
+  color: hsl(var(--bc));
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  /* スクロールバーを非表示にして、textareaのスクロールバーのみ表示 */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }

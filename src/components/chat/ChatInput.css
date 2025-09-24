@@ -1,24 +1,24 @@
 .highlight-org {
-  background-color: #fecaca;
-  color: #991b1b;
+  background-color: hsl(var(--p));
+  color: hsl(var(--pc));
   padding: 0.1em 0.3em;
   border-radius: 0.25em;
 }
 .highlight-prd {
-  background-color: #bfdbfe;
-  color: #1e40af;
+  background-color: hsl(var(--s));
+  color: hsl(var(--sc));
   padding: 0.1em 0.3em;
   border-radius: 0.25em;
 }
 .highlight-person {
-  background-color: #bbf7d0;
-  color: #166534;
+  background-color: hsl(var(--a));
+  color: hsl(var(--ac));
   padding: 0.1em 0.3em;
   border-radius: 0.25em;
 }
 .highlight-loc {
-  background-color: #e9d5ff;
-  color: #581c87;
+  background-color: hsl(var(--in));
+  color: hsl(var(--inc));
   padding: 0.1em 0.3em;
   border-radius: 0.25em;
 }
@@ -28,7 +28,7 @@
   padding: 0.5rem 0.75rem;
 }
 .ProseMirror p.is-editor-empty:first-child::before {
-  color: #a9a9a9;
+  color: hsl(var(--bc) / 0.4);
   content: attr(data-placeholder);
   float: left;
   height: 0;

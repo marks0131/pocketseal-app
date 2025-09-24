@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FiSend } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
+import { useDebounce } from 'use-debounce'; // インポート
 import type { Message, MessagePart } from '../../types';
 import './ChatInput.css';
 import Highlighter, { type Marker, type MarkerColor } from './Highlighter';
@@ -27,27 +28,30 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, threadId }) => {
   const [isSending, setIsSending] = useState(false);
   const [editorText, setEditorText] = useState('');
   const [markerData, setMarkerData] = useState<Marker[]>([]);
+  const [debouncedText] = useDebounce(editorText, 300); // 300msのデバウンス
 
   useEffect(() => {
     const fetchAndApplyHighlights = async () => {
-
+      if (debouncedText.trim() === '') {
+        setMarkerData([]);
+        return;
+      }
       try {
         const nerResponse = await axios.post('http://127.0.0.1:8000/ner_text', {
-          text: editorText,
+          text: debouncedText,
         });
         const parts: MessagePart[] = nerResponse.data;
-        // TODO: partsをmarkerDataに代入する処理を書く
         setMarkerData(parts.map(part => ({
           start: part.start,
           end: part.end,
           color: getClassNameForEntity(part.entity_group),
-        })))
+        })));
       } catch (error) {
         console.error("リアルタイム解析エラー:", error);
       }
     };
     fetchAndApplyHighlights();
-  }, [editorText]);
+  }, [debouncedText]);
   
   const handleSubmit = async () => {
     const trimmedInput = editorText.trim();
@@ -88,22 +92,21 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, threadId }) => {
       }
     };
     
-    const editorElement = document.querySelector('.ProseMirror');
-    if (editorElement) {
-        editorElement.addEventListener('keydown', handleKeyDown as EventListener);
+    const componentElement = document.getElementById('chat-input-container');
+    if (componentElement) {
+        componentElement.addEventListener('keydown', handleKeyDown as EventListener);
     }
 
     return () => {
-      if (editorElement) {
-        editorElement.removeEventListener('keydown', handleKeyDown as EventListener);
+      if (componentElement) {
+        componentElement.removeEventListener('keydown', handleKeyDown as EventListener);
       }
     };
   }, [isSending, handleSubmit]);
 
   return (
-    <div className="p-4 border-t border-base-300 flex-shrink-0">
+    <div id="chat-input-container" className="p-4 border-t border-base-300 flex-shrink-0">
       <div className="flex items-end gap-2 p-2 rounded-lg border border-base-300 bg-base-100">
-        {/* <EditorContent editor={editor} className="flex-grow max-h-40 overflow-y-auto" /> */}
         <Highlighter markerData={markerData} text={editorText} setText={(v) => setEditorText(v)} className="flex-grow max-h-40" />
         <button
           onClick={handleSubmit}
