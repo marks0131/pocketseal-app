@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RxGear, RxTrash, RxClipboardCopy } from 'react-icons/rx'; // RxKeyをRxGearに修正
+import { RxGear, RxTrash, RxClipboardCopy } from 'react-icons/rx'; 
 import { toast } from 'react-hot-toast';
 
 interface ApiKey {

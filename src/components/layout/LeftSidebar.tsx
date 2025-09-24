@@ -10,8 +10,9 @@ interface Thread {
 
 interface LeftSidebarProps {
   threads: Thread[];
-  onAddThread: () => void;
+  onAddThread: () => Promise<void>;
   onThreadsUpdate: () => void;
+  loading: boolean;
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ threads, onAddThread, onThreadsUpdate }) => {
